@@ -17,7 +17,7 @@ Deno.test(async function parseInputTest() {
   ]]);
 });
 
-Deno.test(function findTotalDistanceTest() {
+Deno.test(function calculateTotalDistanceTest() {
   assertEquals(
     calculateTotalDistance([3, 4, 2, 1, 3, 3], [
       4,
@@ -31,7 +31,7 @@ Deno.test(function findTotalDistanceTest() {
   );
 });
 
-Deno.test(function findTotalDistanceTest() {
+Deno.test(function calculateSimilarityScoreTest() {
   assertEquals(
     calculateSimilarityScore([3, 4, 2, 1, 3, 3], [
       4,
