@@ -112,13 +112,14 @@ export function move(map: Grid, guard: Guard): Guard {
   });
 }
 
-export async function calculateNumberOfMovesBeforeLeaving(path: string) {
-  const visited: string[] = [];
+export async function getVisitedPositions(
+  path: string,
+): Promise<Array<[number, number]>> {
+  const visited: Array<[number, number]> = [];
   const map = await parseInput(path);
   let guard = findGuard(map);
   while (guard.position !== null) {
-    visited.push(`${guard.position[0]}-${guard.position[1]}`);
-    // console.log(map.map((x) => x.join("")).join("\n"));
+    visited.push(guard.position);
     map[guard.position[0]][guard.position[1]] = ".";
     guard = move(map, guard);
     if (guard.position !== null) {
@@ -127,9 +128,55 @@ export async function calculateNumberOfMovesBeforeLeaving(path: string) {
       );
     }
   }
-  return [...new Set(visited)].length;
+  return (
+    Array.from(
+      new Set(visited.map((pair) => JSON.stringify(pair))),
+    ).map((pairStr) => JSON.parse(pairStr))
+  );
 }
 
-console.log(
-  await calculateNumberOfMovesBeforeLeaving("./day-6/input.txt"),
-);
+function getGuardId(guard: Guard): string {
+  if (guard.position === null) {
+    return "";
+  }
+  return `${guard.position[0]}-${guard.position[1]}-${
+    getSymbolFromDirection(
+      guard.direction,
+    )
+  }`;
+}
+
+function getIsLoopable(map: Grid, guard: Guard): boolean {
+  const visited: string[] = [];
+  while (guard.position !== null) {
+    if (visited.includes(getGuardId(guard))) {
+      return true;
+    }
+    visited.push(getGuardId(guard));
+    map[guard.position[0]][guard.position[1]] = ".";
+    guard = move(map, guard);
+    if (guard.position !== null) {
+      map[guard.position[0]][guard.position[1]] = getSymbolFromDirection(
+        guard.direction,
+      );
+    }
+  }
+  return false;
+}
+
+export async function calculateLoopableRoutes(path: string) {
+  const visited = await getVisitedPositions(path);
+  const map = await parseInput(path);
+  const guard = findGuard(map);
+  return visited.filter((position) => {
+    if (position.join("") === guard?.position?.join("")) {
+      return false;
+    }
+    const newMap = structuredClone(map);
+    newMap[position[0]][position[1]] = "#";
+    return getIsLoopable(newMap, guard);
+  }).length;
+}
+
+console.log((await getVisitedPositions("day-6/input.txt")).length);
+console.log(await calculateLoopableRoutes("day-6/input.txt"));
